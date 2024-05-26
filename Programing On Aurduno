@@ -1,0 +1,48 @@
+      #include <SoftwareSerial.h>
+
+// GSM module connections
+#define GSM_TX_PIN 7
+#define GSM_RX_PIN 8
+
+// Motion sensor pin
+#define MOTION_SENSOR_PIN 2
+
+// Water flow sensor pin
+#define WATER_FLOW_SENSOR_PIN 3
+
+SoftwareSerial gsmSerial(GSM_TX_PIN, GSM_RX_PIN);
+
+void setup() {
+  Serial.begin(9600);
+  gsmSerial.begin(9600);
+
+  pinMode(MOTION_SENSOR_PIN, INPUT);
+  pinMode(WATER_FLOW_SENSOR_PIN, INPUT);
+}
+
+void loop() {
+  int motionValue = digitalRead(MOTION_SENSOR_PIN);
+  int flowValue = digitalRead(WATER_FLOW_SENSOR_PIN);
+
+  if (motionValue == HIGH && flowValue == HIGH) {
+    sendMessage("Motion detected and water flow detected!");
+    delay(5000); // Delay to prevent sending multiple messages
+  }
+
+  delay(1000); // Delay between sensor readings
+}
+
+void sendMessage(String message) {
+  // AT commands for sending SMS
+  gsmSerial.println("AT+CMGF=1"); // Set SMS mode to text
+  delay(100);
+  gsmSerial.print("AT+CMGS=\""); // Set recipient's phone number
+  gsmSerial.print("RECIPIENT_PHONE_NUMBER"); // Replace with recipient's phone number
+  gsmSerial.println("\"");
+  delay(100);
+  gsmSerial.println(message); // Message content
+  delay(100);
+  gsmSerial.println((char)26); // End of message
+  delay(100);
+  gsmSerial.println();
+}
